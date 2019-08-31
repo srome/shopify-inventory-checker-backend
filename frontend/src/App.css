@@ -1,0 +1,24 @@
+body {
+  padding: 1em;
+}
+
+.logo {
+  text-align: center;
+  margin: 1em 0;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 1em;
+}
+
+.productCard {
+  border: 1px solid #ccc;
+  padding: 1em;
+}
+
+.quantity {
+  text-align: right;
+  color: palevioletred;
+}
