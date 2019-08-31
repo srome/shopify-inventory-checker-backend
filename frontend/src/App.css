@@ -9,7 +9,7 @@ body {
 
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   grid-gap: 1em;
 }
 
@@ -20,5 +20,7 @@ body {
 
 .quantity {
   text-align: right;
+  border-top: 1px solid #ccc;
+  margin-top: 10px;
   color: palevioletred;
 }
