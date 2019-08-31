@@ -16,7 +16,7 @@ const App = ({ apiUrl, logoUrl, shopName }) => (
           <h2>{shopName}</h2>
         )}
       </div>
-      <ProductGrid apiUrl={apiUrl} />
+      <ProductGrid apiUrl={apiUrl} shopName={shopName} />
     </div>
   </>
 );
