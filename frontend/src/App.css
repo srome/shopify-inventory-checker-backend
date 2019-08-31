@@ -24,3 +24,7 @@ body {
   margin-top: 10px;
   color: palevioletred;
 }
+
+.quantity.inStock {
+  color: lightslategray;
+}
