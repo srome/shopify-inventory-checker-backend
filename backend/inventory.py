@@ -60,7 +60,6 @@ class BusinessDetails:
     def add_location(self, location):
 
         if location['id'] not in self.exclude_location_ids:
-
             if location['active']:
                 self.locations[location['id']] = {
                 self.location_name : location['name'], 
@@ -87,11 +86,22 @@ class BusinessDetails:
     def get_item_name(self, item):
         return self.items.get(item, None)
 
+    def _get_item_quantities_for_location(self, location_id):
+        return self.locations[location_id].get(self.item_quantities, {}).items()
+
+    def _build_item_detail(self, location_id, item_id, quantity):
+        return {
+            'location': self.locations[location_id][self.location_name],
+            'productName': self.get_item_name(item_id),
+            'quantity': quantity
+        }
+
     def get_business_details(self):
-        details = []
-        for location_id in self.locations:
-            for item_id, quantity in self.locations[location_id].get(self.item_quantities, {}).items():
-                details.append((self.locations[location_id][self.location_name], self.get_item_name(item_id), quantity))
+        details = [
+            self._build_item_detail(location_id, item_id, quantity)
+            for location_id in self.locations
+            for item_id, quantity in self._get_item_quantities_for_location(location_id)
+        ]
         return details
     
     def get_locations(self):
