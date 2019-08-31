@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import App from "./App.component";
 import "./App.css";
 
-const AppContainer = ({ apiUrl }) => {
+const AppContainer = ({ apiUrl, ...props }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [data, setData] = useState({});
@@ -26,7 +26,7 @@ const AppContainer = ({ apiUrl }) => {
     return <div>Error</div>;
   }
 
-  return loading ? <div>Loading</div> : <App data={data} />;
+  return loading ? <div>Loading</div> : <App {...props} data={data} />;
 };
 
 export default AppContainer;

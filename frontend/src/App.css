@@ -2,7 +2,7 @@ body {
   padding: 1em;
 }
 
-.logo {
+.logoContainer {
   text-align: center;
   margin: 1em 0;
 }
@@ -15,7 +15,16 @@ body {
 
 .productCard {
   border: 1px solid #ccc;
+  box-shadow: 2px 6px 25px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.productDetails {
   padding: 1em;
+}
+
+.image {
+  width: 100%;
 }
 
 .quantity {
