@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import App from "./App.component";
-import "./App.css";
+import ProductGrid from "./ProductGrid.component";
+import Loader from "../Loader";
 
-const AppContainer = ({ apiUrl, ...props }) => {
+const ProductGridContainer = ({ apiUrl, ...props }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [data, setData] = useState({});
@@ -26,7 +26,7 @@ const AppContainer = ({ apiUrl, ...props }) => {
     return <div>Error</div>;
   }
 
-  return loading ? <div>Loading</div> : <App {...props} data={data} />;
+  return loading ? <Loader /> : <ProductGrid {...props} data={data} />;
 };
 
-export default AppContainer;
+export default ProductGridContainer;
