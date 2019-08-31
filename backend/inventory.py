@@ -49,13 +49,18 @@ class BusinessDetails:
     address = 'address'
 
     exclude_location_id_string = os.environ.get('EXCLUDE_LOCATION_IDS', '')
-    exclude_location_ids = {int(exclude_location_id.strip()) for exclude_location_id in exclude_location_id_string.split(',')} if exclude_location_id_string else []
+    exclude_location_ids = {
+        int(exclude_location_id.strip())
+        for exclude_location_id
+        in exclude_location_id_string.split(',')
+    } if exclude_location_id_string else []
 
 
     def __init__(self):
         self.item_id_flavors_map = {}
         self.locations = {}
         self.items = {}
+        self.images = {}
 
     def add_location(self, location):
 
@@ -86,6 +91,12 @@ class BusinessDetails:
     def get_item_name(self, item):
         return self.items.get(item, None)
 
+    def add_item_image(self, item, image):
+        self.images[item] = image
+
+    def get_item_image(self, item):
+        return self.images.get(item, '')
+
     def _get_item_quantities_for_location(self, location_id):
         return self.locations[location_id].get(self.item_quantities, {}).items()
 
@@ -93,7 +104,8 @@ class BusinessDetails:
         return {
             'location': self.locations[location_id][self.location_name],
             'productName': self.get_item_name(item_id),
-            'quantity': quantity
+            'quantity': quantity,
+            'image': self.get_item_image(item_id)
         }
 
     def get_business_details(self):
@@ -136,8 +148,14 @@ class Handler:
         for product in cls.api.get_products():
             for variant in product['variants']:
                 if business_details.is_item_available(variant['inventory_item_id']):
-                    business_details.add_item_name(item=variant['inventory_item_id'],
-                                                      name=product['title'])
+                    business_details.add_item_name(
+                        item=variant['inventory_item_id'],
+                        name=product['title']
+                    )
+                    business_details.add_item_image(
+                        item=variant['inventory_item_id'],
+                        image=product['image']['src']
+                    )
 
     @classmethod
     def get_content(cls):
