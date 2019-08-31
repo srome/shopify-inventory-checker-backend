@@ -49,7 +49,7 @@ class BusinessDetails:
     address = 'address'
 
     exclude_location_id_string = os.environ.get('EXCLUDE_LOCATION_IDS', '')
-    exclude_location_ids = {int(exclude_location_id.strip()) for exclude_location_id in exclude_location_id_string.split(',')}
+    exclude_location_ids = {int(exclude_location_id.strip()) for exclude_location_id in exclude_location_id_string.split(',')} if exclude_location_id_string else []
 
 
     def __init__(self):
