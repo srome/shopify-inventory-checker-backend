@@ -100,21 +100,32 @@ class BusinessDetails:
     def _get_item_quantities_for_location(self, location_id):
         return self.locations[location_id].get(self.item_quantities, {}).items()
 
-    def _build_item_detail(self, location_id, item_id, quantity):
-        return {
-            'location': self.locations[location_id][self.location_name],
+    def _build_item_detail(self, output_object, location_id, item_id, quantity):
+        location_name = self.locations[location_id][self.location_name]
+        data = {
             'productName': self.get_item_name(item_id),
             'quantity': quantity,
             'image': self.get_item_image(item_id)
         }
+        output_object[location_name] = output_object.get(location_name, []) + [data]
+
+        return output_object
 
     def get_business_details(self):
-        details = [
-            self._build_item_detail(location_id, item_id, quantity)
+        output_object = {}
+
+        data = [
+            self._build_item_detail(output_object, location_id, item_id, quantity)
             for location_id in self.locations
             for item_id, quantity in self._get_item_quantities_for_location(location_id)
         ]
-        return details
+
+        # Sort for consistency
+        for key, value in output_object.items():
+            output_object[key] = sorted(value, key = lambda x : x['productName'])
+
+
+        return output_object
     
     def get_locations(self):
         return self.locations

@@ -125,9 +125,9 @@ class TestHandler(unittest.TestCase):
     def test_content(self):
         x = FakeHandler.get_content()
 
-        self.assertEqual(x[0][0], "Herman's")
-        self.assertEqual(x[0][1], "KLP")
-        self.assertEqual(x[0][2], 7)
+        self.assertTrue("Herman's" in x)
+        self.assertEqual(x["Herman's"][0]["productName"], "KLP")
+        self.assertEqual(x["Herman's"][0]["quantity"], 7)
 
 
 if __name__ == '__main__':
