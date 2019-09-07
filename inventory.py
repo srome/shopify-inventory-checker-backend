@@ -34,7 +34,7 @@ class ShopifyAPI:
 
     @classmethod
     def get_inventory_for_location(cls,location_id):
-        response = cls._call_api(f"{cls.api_base_url}/locations/{location_id}/inventory_levels.json")
+        response = cls._call_api(f"{cls.api_base_url}/locations/{location_id}/inventory_levels.json?limit=250")
         return cls._decode_response(response)['inventory_levels']
 
     @classmethod
@@ -79,6 +79,7 @@ class BusinessDetails:
         self.locations = {}
         self.items = {}
         self.images = {}
+        self.available_items = set()
 
     def add_location(self, location):
 
@@ -100,7 +101,7 @@ class BusinessDetails:
         else:
             raise Exception('No such location')
 
-    def is_item_available(self, item):
+    def does_item_exist(self, item):
         return item in self.items
 
     def add_item_name(self,item, name):
@@ -115,17 +116,27 @@ class BusinessDetails:
     def get_item_image(self, item):
         return self.images.get(item, '')
 
+    def add_available_tag(self, item):
+        self.available_items.add(item)
+
+    def item_has_availability_tag(self, item):
+        # Additional check based on tags
+        return item in self.available_items
+
     def _get_item_quantities_for_location(self, location_id):
         return self.locations[location_id].get(self.item_quantities, {}).items()
 
     def _build_item_detail(self, output_object, location_id, item_id, quantity):
         location_name = self.locations[location_id][self.location_name]
-        data = {
-            'productName': self.get_item_name(item_id),
-            'quantity': quantity,
-            'image': self.get_item_image(item_id)
-        }
-        output_object[location_name] = output_object.get(location_name, []) + [data]
+
+        # only do it if item hasn't been filtered
+        if self.item_has_availability_tag(item_id):
+            data = {
+                'productName': self.get_item_name(item_id),
+                'quantity': quantity,
+                'image': self.get_item_image(item_id)
+            }
+            output_object[location_name] = output_object.get(location_name, []) + [data]
 
         return output_object
 
@@ -167,10 +178,8 @@ class Handler:
         today = datetime.datetime.now()
         for location_id in business_details.get_locations():
             for level in cls.api.get_inventory_for_location(location_id):
-                update_date = datetime.datetime.strptime(level['updated_at'].split('T')[0],'%Y-%m-%d')
-                if (level['available'] is not None and level['available'] > 0) \
-                    or (today-update_date).days < 5:
-                    business_details.update_location_item_quantity(location=location_id, 
+                # we filter later using the Available tag
+                business_details.update_location_item_quantity(location=location_id, 
                                                                    item=level['inventory_item_id'],
                                                                    quantity=level['available'])
 
@@ -179,15 +188,21 @@ class Handler:
         # Assumes items have been filled out
         for product in cls.api.get_products():
             for variant in product['variants']:
-                if business_details.is_item_available(variant['inventory_item_id']):
-                    business_details.add_item_name(
-                        item=variant['inventory_item_id'],
-                        name=product['title']
-                    )
-                    business_details.add_item_image(
-                        item=variant['inventory_item_id'],
-                        image=product['image']['src']
-                    )
+                if business_details.does_item_exist(variant['inventory_item_id']):
+                    # Check for available tag
+                    tags = [x.strip() for x in product['tags'].split(',')]
+
+                    if "Available" in tags:
+                        business_details.add_available_tag(variant['inventory_item_id'])
+
+                        business_details.add_item_name(
+                            item=variant['inventory_item_id'],
+                            name=product['title']
+                        )
+                        business_details.add_item_image(
+                            item=variant['inventory_item_id'],
+                            image=product['image']['src']
+                        )
 
     @classmethod
     def get_content(cls):
