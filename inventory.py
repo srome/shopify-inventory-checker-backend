@@ -2,6 +2,7 @@ from base64 import b64encode
 import requests
 from json import loads as parse_json
 import os
+import datetime
 
 class ShopifyAPI:
     token = os.environ['SHOPIFY_AUTH_TOKEN']
@@ -39,9 +40,26 @@ class ShopifyAPI:
     @classmethod
     def get_products(cls):
         # inventory item 1-1 correspondence with product variant, but IDs are different... thanks Shopify
-        response = cls._call_api(f"{cls.api_base_url}/products.json")
-        return cls._decode_response(response)['products']
+        return cls._make_list_of_products(f"{cls.api_base_url}/products.json?limit=250")
 
+    @classmethod
+    def _make_list_of_products(cls, url):
+        counter = 0
+        products = []
+        has_next = False
+        while True:
+            response = cls._call_api(url)
+            products += cls._decode_response(response)['products']
+            if 'LINK' in response.headers:
+                has_next = "next" in response.headers['LINK'].split(';')[1]
+                url = response.headers['LINK'].split(';')[0][1:-1]
+            else:
+                break
+
+            if not has_next:
+                break
+
+        return products
 
 class BusinessDetails:
     item_quantities = 'item_quantities'
@@ -146,9 +164,12 @@ class Handler:
     @classmethod
     def _add_item_quantities(cls, business_details):
         # modifies locations_data to include available flavors (stored via inventory_item_id)
+        today = datetime.datetime.now()
         for location_id in business_details.get_locations():
             for level in cls.api.get_inventory_for_location(location_id):
-                if level['available'] is not None and level['available'] > 0:
+                update_date = datetime.datetime.strptime(level['updated_at'].split('T')[0],'%Y-%m-%d')
+                if (level['available'] is not None and level['available'] > 0) \
+                    or (today-update_date).days < 5:
                     business_details.update_location_item_quantity(location=location_id, 
                                                                    item=level['inventory_item_id'],
                                                                    quantity=level['available'])
