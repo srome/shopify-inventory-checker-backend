@@ -96,7 +96,8 @@ class BusinessDetails:
     def update_location_item_quantity(self, location, item, quantity):
         if location in self.locations:
             # being slick to aviod if/else or try/except
-            self.locations[location][self.item_quantities][item] = quantity + self.locations[location][self.item_quantities].get(item,0)
+            # Shopify returns null occasionally for the quanity... why ??
+            self.locations[location][self.item_quantities][item] = (quantity or 0) + self.locations[location][self.item_quantities].get(item,0)
             self.items[item] = None
         else:
             raise Exception('No such location')
@@ -151,7 +152,7 @@ class BusinessDetails:
 
         # Sort for consistency
         for key, value in output_object.items():
-            output_object[key] = sorted(value, key = lambda x : x['productName'])
+            output_object[key] = sorted(value, key = lambda x : (x['quantity'] , x['productName']), reverse=True)
 
 
         return output_object
